@@ -1,0 +1,12 @@
+D:/M2 - TSI/opengl/tetris-3d/build/CMakeFiles/glad.dir
+D:/M2 - TSI/opengl/tetris-3d/build/CMakeFiles/Tetris3D.dir
+D:/M2 - TSI/opengl/tetris-3d/build/CMakeFiles/INSTALL.dir
+D:/M2 - TSI/opengl/tetris-3d/build/CMakeFiles/ALL_BUILD.dir
+D:/M2 - TSI/opengl/tetris-3d/build/CMakeFiles/ZERO_CHECK.dir
+D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/CMakeFiles/uninstall.dir
+D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/CMakeFiles/INSTALL.dir
+D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/CMakeFiles/ALL_BUILD.dir
+D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/src/CMakeFiles/glfw.dir
+D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/src/CMakeFiles/update_mappings.dir
+D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/src/CMakeFiles/INSTALL.dir
+D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/docs/CMakeFiles/INSTALL.dir

@@ -1,0 +1,10 @@
+^D:\M2 - TSI\OPENGL\TETRIS-3D\BUILD\CMAKEFILES\EB86E244E827E12B7598748751B730D9\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SD:/M2 - TSI/opengl/tetris-3d" "-BD:/M2 - TSI/opengl/tetris-3d/build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "D:/M2 - TSI/opengl/tetris-3d/build/Tetris3D.sln"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

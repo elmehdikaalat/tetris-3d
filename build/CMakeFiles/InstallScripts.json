@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/M2 - TSI/opengl/tetris-3d/build/cmake_install.cmake",
+		"D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/cmake_install.cmake",
+		"D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/src/cmake_install.cmake",
+		"D:/M2 - TSI/opengl/tetris-3d/build/libs/glfw/docs/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
