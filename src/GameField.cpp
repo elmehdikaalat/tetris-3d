@@ -126,17 +126,26 @@ void GameField::dropCurrentPiece() {
 void GameField::lockCurrentPiece() {
     if (!currentPiece) return;
     
-    // Place cubes in field
     std::vector<glm::vec2> positions = currentPiece->getBlockPositions();
-    glm::vec3 pieceColor = currentPiece->getColor();
     
+    // Check if any part exceeds field height - GAME OVER
+    for (const auto& pos : positions) {
+        int y = static_cast<int>(round(pos.y));
+        if (y >= FIELD_HEIGHT) {
+            gameOver = true;
+            delete currentPiece;
+            currentPiece = nullptr;
+            std::cout << "Game Over!" << std::endl;
+            return;
+        }
+    }
+    
+    // Place all cubes in field (all are within bounds now)
+    glm::vec3 pieceColor = currentPiece->getColor();
     for (const auto& pos : positions) {
         int x = static_cast<int>(round(pos.x));
         int y = static_cast<int>(round(pos.y));
-        
-        if (x >= 0 && x < FIELD_WIDTH && y >= 0 && y < FIELD_HEIGHT) {
-            field[y][x] = new Cube(x, y, 0, pieceColor);
-        }
+        field[y][x] = new Cube(x, y, 0, pieceColor);
     }
     
     delete currentPiece;

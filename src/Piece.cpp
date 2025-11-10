@@ -24,10 +24,10 @@ void Piece::initializePiece(PieceType type) {
         case PieceType::T: // T piece
             shape = {{0, 0}, {-1, 0}, {1, 0}, {0, 1}};
             break;
-        case PieceType::S: // S piece (fixed)
+        case PieceType::S: // S piece 
             shape = {{0, 0}, {0, 1}, {1, 1}, {1, 2}};
             break;
-        case PieceType::Z: // Z piece (fixed)
+        case PieceType::Z: // Z piece
             shape = {{1, 0}, {1, 1}, {0, 1}, {0, 2}};
             break;
         case PieceType::J: // J piece
