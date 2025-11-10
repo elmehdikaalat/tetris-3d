@@ -372,6 +372,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="D:\M2 - TSI\opengl\tetris-3d\src\Cube.cpp" />
+    <ClCompile Include="D:\M2 - TSI\opengl\tetris-3d\src\GameField.cpp" />
+    <ClCompile Include="D:\M2 - TSI\opengl\tetris-3d\src\Piece.cpp" />
     <ClCompile Include="D:\M2 - TSI\opengl\tetris-3d\src\main.cpp" />
   </ItemGroup>
   <ItemGroup />

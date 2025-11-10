@@ -3,23 +3,24 @@ project(Tetris3D)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# Inclure les dossiers
+# Include directories
 include_directories(include)
 include_directories(libs/glm)
 
-
-# Trouver les librairies nécessaires
+# Find OpenGL
 find_package(OpenGL REQUIRED)
 
-# Ajouter GLFW et GLAD (on les installera ensuite)
+# Add GLFW from source
 add_subdirectory(libs/glfw)
+
+# Create GLAD library
 add_library(glad src/glad.c)
 
-# Ajouter les fichiers sources
+# Add executable with all source files
 file(GLOB SRC_FILES src/*.cpp)
 add_executable(Tetris3D ${SRC_FILES})
 
-# Lier les dépendances
+# Link libraries
 target_link_libraries(Tetris3D
     glfw
     glad

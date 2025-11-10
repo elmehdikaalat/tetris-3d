@@ -1,76 +1,96 @@
+#include "GameField.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
-#include "Camera.h"
-#include "Piece.h"
-#include <GameField.h>
+#include <chrono>
+
+const unsigned int SCR_WIDTH = 1200;
+const unsigned int SCR_HEIGHT = 900;
+
+GameField* gameField = nullptr;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        if (gameField) {
+            switch (key) {
+                case GLFW_KEY_A:
+                case GLFW_KEY_LEFT:
+                    gameField->moveCurrentPiece(-1, 0);
+                    break;
+                case GLFW_KEY_E:
+                case GLFW_KEY_RIGHT:
+                    gameField->moveCurrentPiece(1, 0);
+                    break;
+                case GLFW_KEY_S:
+                case GLFW_KEY_DOWN:
+                    gameField->dropCurrentPiece();
+                    break;
+                case GLFW_KEY_ESCAPE:
+                    glfwSetWindowShouldClose(window, true);
+                    break;
+            }
+        }
+    }
+}
+
 int main() {
-    srand(static_cast<unsigned>(time(nullptr)));
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    if (!glfwInit()) return -1;
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Tetris 3D", NULL, NULL);
-    if (!window) { glfwTerminate(); return -1; }
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Tetris 3D", NULL, NULL);
+    if (window == NULL) {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
     glfwMakeContextCurrent(window);
-    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetKeyCallback(window, key_callback);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        std::cout << "Failed to initialize GLAD" << std::endl;
+        return -1;
+    }
+
+    // Enable depth testing
     glEnable(GL_DEPTH_TEST);
+    
+    // Create game field
+    gameField = new GameField();
 
+    auto lastTime = std::chrono::high_resolution_clock::now();
+    float dropTimer = 0.0f;
+    const float DROP_INTERVAL = 1.0f; // 1 second
 
-    double lastFallTime = glfwGetTime();
-    double fallInterval = 1.0;
-
-    Camera camera;
-    GameField field(10, 4, 12);
-    Piece piece(T);
-
-    // Boucle principale
+    // Render loop
     while (!glfwWindowShouldClose(window)) {
-        double currentTime = glfwGetTime();
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
+        lastTime = currentTime;
 
-        // Gravité
-        if (currentTime - lastFallTime >= fallInterval) {
-            piece.move(0.0f, -1.0f, 0.0f);
-            lastFallTime = currentTime;
+        dropTimer += deltaTime;
+        if (dropTimer >= DROP_INTERVAL) {
+            gameField->update();
+            dropTimer = 0.0f;
         }
 
-        // Déplacements
-        if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-            piece.move(-1.0f, 0.0f, 0.0f);
-        if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-            piece.move(1.0f, 0.0f, 0.0f);
-
-        // Rendu
-        glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
+        // Set white background
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glm::mat4 projection = camera.getProjectionMatrix(800.0f / 600.0f);
-        glMultMatrixf(&projection[0][0]);
-
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glm::mat4 view = camera.getViewMatrix();
-        glMultMatrixf(&view[0][0]);
-
-        // Dessiner le plan de jeu
-        field.draw();
-
-        // Dessiner la pièce
-        piece.draw();
+        gameField->render();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-        
 
+    delete gameField;
     glfwTerminate();
     return 0;
 }

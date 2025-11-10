@@ -1,48 +1,50 @@
-#pragma once
-#include <glad/glad.h>
+#ifndef GAMEFIELD_H
+#define GAMEFIELD_H
+
+#include "Piece.h"
+#include "Cube.h"
+#include <vector>
+#include <glm/glm.hpp>
+#include <random>
 
 class GameField {
 public:
-    int width, depth, height;
+    static const int FIELD_WIDTH = 10;
+    static const int FIELD_HEIGHT = 20;
 
-    GameField(int w = 10, int d = 4, int h = 12)
-        : width(w), depth(d), height(h) {}
+    GameField();
+    ~GameField();
 
-    void draw() const {
-        glColor3f(0.3f, 0.3f, 0.3f);
-        glLineWidth(1.0f);
+    void render();
+    void update();
+    void moveCurrentPiece(int dx, int dy);
+    void dropCurrentPiece();
+    
+    bool isGameOver() const { return gameOver; }
 
-        // ---- Sol ----
-        glBegin(GL_LINES);
-        for (int x = -width / 2; x <= width / 2; ++x) {
-            glVertex3f((float)x, 0.0f, -(float)depth / 2);
-            glVertex3f((float)x, 0.0f, (float)depth / 2);
-        }
-        for (int z = -depth / 2; z <= depth / 2; ++z) {
-            glVertex3f(-(float)width / 2, 0.0f, (float)z);
-            glVertex3f((float)width / 2, 0.0f, (float)z);
-        }
-        glEnd();
-
-        // ---- Murs ----
-        glColor3f(0.15f, 0.15f, 0.15f);
-        for (int y = 0; y <= height; ++y) {
-            glBegin(GL_LINE_LOOP);
-            glVertex3f(-(float)width / 2, (float)y, -(float)depth / 2);
-            glVertex3f((float)width / 2, (float)y, -(float)depth / 2);
-            glVertex3f((float)width / 2, (float)y, (float)depth / 2);
-            glVertex3f(-(float)width / 2, (float)y, (float)depth / 2);
-            glEnd();
-        }
-
-        // ---- Coins verticaux ----
-        glBegin(GL_LINES);
-        for (int x = -width / 2; x <= width / 2; x += width) {
-            for (int z = -depth / 2; z <= depth / 2; z += depth) {
-                glVertex3f((float)x, 0.0f, (float)z);
-                glVertex3f((float)x, (float)height, (float)z);
-            }
-        }
-        glEnd();
-    }
+private:
+    void initializeWalls();
+    void spawnNewPiece();
+    bool isValidPosition(const std::vector<glm::vec2>& positions);
+    void lockCurrentPiece();
+    void checkAndClearLines();
+    bool isLineFull(int line);
+    void clearLine(int line);
+    void dropLinesAbove(int line);
+    
+    // Game state
+    std::vector<std::vector<Cube*>> field; // [y][x] - placed cubes
+    std::vector<Cube*> walls; // Border walls
+    Piece* currentPiece;
+    bool gameOver;
+    
+    // Camera and projection
+    glm::mat4 view;
+    glm::mat4 projection;
+    
+    // Random generator
+    std::mt19937 rng;
+    std::uniform_int_distribution<int> pieceDist;
 };
+
+#endif

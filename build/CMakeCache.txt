@@ -315,6 +315,9 @@ Tetris3D_SOURCE_DIR:STATIC=D:/M2 - TSI/opengl/tetris-3d
 //Use MSVC runtime library DLL
 USE_MSVC_RUNTIME_LIBRARY_DLL:BOOL=ON
 
+//The directory containing a CMake configuration file for glfw3.
+glfw3_DIR:PATH=glfw3_DIR-NOTFOUND
+
 
 ########################
 # INTERNAL cache entries
