@@ -6,34 +6,31 @@
 #include <glm/glm.hpp>
 
 enum class PieceType {
-    I, O, T, S, Z, J, L
+    I = 0, T = 1, S = 2, Z = 3, J = 4, L = 5
 };
 
 class Piece {
 public:
-    Piece(PieceType type, float x = 0, float y = 0);
+    Piece(PieceType type, float x, float y);
     ~Piece();
-
+    
     void render(const glm::mat4& view, const glm::mat4& projection);
     void move(float dx, float dy);
     void setPosition(float x, float y);
     
     std::vector<glm::vec2> getBlockPositions() const;
     glm::vec3 getColor() const { return color; }
-    float getX() const { return x; }
-    float getY() const { return y; }
-
-    static glm::vec3 getRandomColor();
-
+    
 private:
     void initializePiece(PieceType type);
     void updateCubePositions();
-
+    glm::vec3 getRandomColor();
+    
     PieceType type;
+    float x, y;
+    std::vector<glm::vec2> shape;
     std::vector<Cube*> cubes;
-    std::vector<glm::vec2> shape; // Relative positions of blocks
     glm::vec3 color;
-    float x, y; // Position of the piece (center)
 };
 
 #endif

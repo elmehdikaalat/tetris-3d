@@ -2,7 +2,7 @@
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 
-GameField::GameField() : gameOver(false), rng(std::time(0)), pieceDist(0, 6) {
+GameField::GameField() : gameOver(false), rng(std::time(0)), pieceDist(0, 5) {
     // Initialize field grid
     field.resize(FIELD_HEIGHT);
     for (int y = 0; y < FIELD_HEIGHT; y++) {
@@ -11,15 +11,15 @@ GameField::GameField() : gameOver(false), rng(std::time(0)), pieceDist(0, 6) {
     
     initializeWalls();
     
-    // Setup camera and projection
+    // Setup camera and projection - front-facing angle, much further back
     view = glm::lookAt(
-        glm::vec3(5.0f, 10.0f, 15.0f), // Camera position
-        glm::vec3(4.5f, 5.0f, 0.0f),   // Look at center of field
-        glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
+        glm::vec3(20.0f, 25.0f, 70.0f), // Very far back
+        glm::vec3(4.5f, 7.5f, 0.0f),    // Look at center
+        glm::vec3(0.0f, 1.0f, 0.0f)     // Up vector
     );
     
     projection = glm::perspective(
-        glm::radians(45.0f), 
+        glm::radians(15.0f),             // Very small FOV
         1200.0f / 900.0f, 
         0.1f, 
         100.0f
@@ -68,7 +68,8 @@ void GameField::spawnNewPiece() {
     if (gameOver) return;
     
     PieceType type = static_cast<PieceType>(pieceDist(rng));
-    currentPiece = new Piece(type, 4.5f, FIELD_HEIGHT - 1);
+    // Spawn at integer position (center of 10-wide field)
+    currentPiece = new Piece(type, 5.0f, FIELD_HEIGHT);
     
     // Check if spawn position is valid
     if (!isValidPosition(currentPiece->getBlockPositions())) {
@@ -82,12 +83,12 @@ bool GameField::isValidPosition(const std::vector<glm::vec2>& positions) {
         int x = static_cast<int>(round(pos.x));
         int y = static_cast<int>(round(pos.y));
         
-        // Check bounds
+        // Check bounds (allow pieces to be above field initially)
         if (x < 0 || x >= FIELD_WIDTH || y < 0) {
             return false;
         }
         
-        // Check collision with placed pieces
+        // Check collision with placed pieces only within field bounds
         if (y < FIELD_HEIGHT && field[y][x] != nullptr) {
             return false;
         }

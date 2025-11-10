@@ -88,7 +88,7 @@ uniform vec3 viewPos;
 
 void main() {
     // Ambient
-    float ambientStrength = 0.3;
+    float ambientStrength = 0.4;
     vec3 ambient = ambientStrength * lightColor;
     
     // Diffuse
@@ -98,10 +98,10 @@ void main() {
     vec3 diffuse = diff * lightColor;
     
     // Specular
-    float specularStrength = 0.2;
+    float specularStrength = 0.1;
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 16);
     vec3 specular = specularStrength * spec * lightColor;
     
     vec3 result = (ambient + diffuse + specular) * cubeColor;
@@ -123,10 +123,14 @@ Cube::~Cube() {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &edgeVAO);
+    glDeleteBuffers(1, &edgeVBO);
     glDeleteProgram(shaderProgram);
+    glDeleteProgram(edgeShaderProgram);
 }
 
 void Cube::setupMesh() {
+    // Setup face mesh
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -139,57 +143,99 @@ void Cube::setupMesh() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    // Position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    // Normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Setup edge mesh (12 edges)
+    float edgeVertices[] = {
+        -0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, // bottom back
+        -0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, // top back
+        -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, // bottom front
+        -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f, // top front
+        
+        -0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  0.5f, // bottom left
+         0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f, // bottom right
+        -0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  0.5f, // top left
+         0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f, // top right
+        
+        -0.5f, -0.5f, -0.5f, -0.5f,  0.5f, -0.5f, // back left
+         0.5f, -0.5f, -0.5f,  0.5f,  0.5f, -0.5f, // back right
+        -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f, // front left
+         0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f  // front right
+    };
+
+    glGenVertexArrays(1, &edgeVAO);
+    glGenBuffers(1, &edgeVBO);
+
+    glBindVertexArray(edgeVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, edgeVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(edgeVertices), edgeVertices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
 
     glBindVertexArray(0);
 }
 
 void Cube::createShaders() {
-    // Vertex shader
+    // Face shaders
     unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
     glCompileShader(vertexShader);
 
-    // Check for vertex shader compile errors
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "Vertex shader compilation failed: " << infoLog << std::endl;
-    }
-
-    // Fragment shader
     unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
     glCompileShader(fragmentShader);
 
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "Fragment shader compilation failed: " << infoLog << std::endl;
-    }
-
-    // Shader program
     shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragmentShader);
     glLinkProgram(shaderProgram);
 
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "Shader program linking failed: " << infoLog << std::endl;
-    }
-
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+
+    // Edge shaders
+    const char* edgeVertexSource = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
+void main() {
+    gl_Position = projection * view * model * vec4(aPos, 1.0);
+}
+)";
+
+    const char* edgeFragmentSource = R"(
+#version 330 core
+out vec4 FragColor;
+uniform vec3 edgeColor;
+
+void main() {
+    FragColor = vec4(edgeColor, 1.0);
+}
+)";
+
+    unsigned int edgeVertexShader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(edgeVertexShader, 1, &edgeVertexSource, NULL);
+    glCompileShader(edgeVertexShader);
+
+    unsigned int edgeFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(edgeFragmentShader, 1, &edgeFragmentSource, NULL);
+    glCompileShader(edgeFragmentShader);
+
+    edgeShaderProgram = glCreateProgram();
+    glAttachShader(edgeShaderProgram, edgeVertexShader);
+    glAttachShader(edgeShaderProgram, edgeFragmentShader);
+    glLinkProgram(edgeShaderProgram);
+
+    glDeleteShader(edgeVertexShader);
+    glDeleteShader(edgeFragmentShader);
 }
 
 void Cube::setPosition(float x, float y, float z) {
@@ -201,24 +247,35 @@ void Cube::setColor(glm::vec3 color) {
 }
 
 void Cube::render(const glm::mat4& view, const glm::mat4& projection) {
-    glUseProgram(shaderProgram);
-
-    // Create model matrix
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, position);
 
-    // Set uniforms
+    // Render faces
+    glUseProgram(shaderProgram);
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     
     glUniform3fv(glGetUniformLocation(shaderProgram, "cubeColor"), 1, glm::value_ptr(color));
-    glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"), 10.0f, 10.0f, 10.0f);
+    glUniform3f(glGetUniformLocation(shaderProgram, "lightPos"), 10.0f, 15.0f, 10.0f);
     glUniform3f(glGetUniformLocation(shaderProgram, "lightColor"), 1.0f, 1.0f, 1.0f);
-    glUniform3f(glGetUniformLocation(shaderProgram, "viewPos"), 0.0f, 5.0f, 15.0f);
+    glUniform3f(glGetUniformLocation(shaderProgram, "viewPos"), 10.0f, 15.0f, 35.0f);
 
-    // Render cube
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+    // Render edges
+    glUseProgram(edgeShaderProgram);
+    glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(edgeShaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+    
+    glm::vec3 edgeColor = color * 0.3f;
+    glUniform3fv(glGetUniformLocation(edgeShaderProgram, "edgeColor"), 1, glm::value_ptr(edgeColor));
+
+    glLineWidth(2.0f);
+    glBindVertexArray(edgeVAO);
+    glDrawArrays(GL_LINES, 0, 24);
+    
     glBindVertexArray(0);
 }

@@ -27,7 +27,9 @@ private:
     glm::vec3 color;
     
     unsigned int VAO, VBO, EBO;
+    unsigned int edgeVAO, edgeVBO;
     unsigned int shaderProgram;
+    unsigned int edgeShaderProgram;
     
     // Vertices for a unit cube with normals
     static const float vertices[];

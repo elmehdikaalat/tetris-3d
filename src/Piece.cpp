@@ -18,26 +18,26 @@ void Piece::initializePiece(PieceType type) {
     shape.clear();
     
     switch (type) {
-        case PieceType::I: // Line piece
-            shape = {{-1.5f, 0}, {-0.5f, 0}, {0.5f, 0}, {1.5f, 0}};
-            break;
-        case PieceType::O: // Square piece
-            shape = {{-0.5f, 0.5f}, {0.5f, 0.5f}, {-0.5f, -0.5f}, {0.5f, -0.5f}};
+        case PieceType::I: // Line piece (horizontal)
+            shape = {{-2, 0}, {-1, 0}, {0, 0}, {1, 0}};
             break;
         case PieceType::T: // T piece
             shape = {{0, 0}, {-1, 0}, {1, 0}, {0, 1}};
             break;
-        case PieceType::S: // S piece
-            shape = {{0, 0}, {1, 0}, {0, 1}, {-1, 1}};
+        case PieceType::S: // S piece (fixed)
+            shape = {{0, 0}, {0, 1}, {1, 1}, {1, 2}};
             break;
-        case PieceType::Z: // Z piece
-            shape = {{0, 0}, {-1, 0}, {0, 1}, {1, 1}};
+        case PieceType::Z: // Z piece (fixed)
+            shape = {{1, 0}, {1, 1}, {0, 1}, {0, 2}};
             break;
         case PieceType::J: // J piece
             shape = {{0, 0}, {0, 1}, {0, -1}, {-1, -1}};
             break;
         case PieceType::L: // L piece
             shape = {{0, 0}, {0, 1}, {0, -1}, {1, -1}};
+            break;
+        default: // Fallback to I piece
+            shape = {{-2, 0}, {-1, 0}, {0, 0}, {1, 0}};
             break;
     }
     

@@ -66,7 +66,7 @@ int main() {
 
     auto lastTime = std::chrono::high_resolution_clock::now();
     float dropTimer = 0.0f;
-    const float DROP_INTERVAL = 1.0f; // 1 second
+    const float DROP_INTERVAL = 0.4f; // Faster drop interval (was 1.0f)
 
     // Render loop
     while (!glfwWindowShouldClose(window)) {

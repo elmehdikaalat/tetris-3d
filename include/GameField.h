@@ -10,7 +10,7 @@
 class GameField {
 public:
     static const int FIELD_WIDTH = 10;
-    static const int FIELD_HEIGHT = 20;
+    static const int FIELD_HEIGHT = 15;  // Reduced from 20
 
     GameField();
     ~GameField();
