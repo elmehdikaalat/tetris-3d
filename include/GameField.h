@@ -42,9 +42,6 @@ private:
     void dropLinesAbove(int line);
     void clearField();
     
-    // Visual indicators
-    void renderStartIndicator();
-    void renderGameOverIndicator();
     
     // Game state
     std::vector<std::vector<Cube*>> field;

@@ -19,12 +19,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
             GameState state = gameField->getGameState();
             
             if (state == GameState::GAME_OVER) {
-                // Any key restarts when game over
                 gameField->restartGame();
                 return;
             }
             
-            // Game controls when playing
             if (state == GameState::PLAYING) {
                 switch (key) {
                     case GLFW_KEY_A:
@@ -74,19 +72,17 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
     
-    gameField = new GameField(); // Auto-starts game
+    gameField = new GameField();
 
     auto lastTime = std::chrono::high_resolution_clock::now();
     float dropTimer = 0.0f;
-    const float DROP_INTERVAL = 0.4f;
+    const float DROP_INTERVAL = 1.0f; // Changed from 0.4f to 1.0f (1 second)
 
-    // Render loop
     while (!glfwWindowShouldClose(window)) {
         auto currentTime = std::chrono::high_resolution_clock::now();
         float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
         lastTime = currentTime;
 
-        // Only update game logic when playing
         if (gameField->getGameState() == GameState::PLAYING) {
             dropTimer += deltaTime;
             if (dropTimer >= DROP_INTERVAL) {

@@ -1,10 +1,10 @@
 #include "GameField.h"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
+#include <ctime>
 
 GameField::GameField() : gameState(GameState::PLAYING), currentPiece(nullptr), 
                          score(0), linesCleared(0), rng(static_cast<unsigned int>(std::time(0))), pieceDist(0, 5) {
-    // Initialize field grid
     field.resize(FIELD_HEIGHT);
     for (int y = 0; y < FIELD_HEIGHT; y++) {
         field[y].resize(FIELD_WIDTH, nullptr);
@@ -12,7 +12,6 @@ GameField::GameField() : gameState(GameState::PLAYING), currentPiece(nullptr),
     
     initializeWalls();
     
-    // Setup camera and projection
     view = glm::lookAt(
         glm::vec3(20.0f, 25.0f, 70.0f),
         glm::vec3(4.5f, 7.5f, 0.0f),
@@ -26,7 +25,6 @@ GameField::GameField() : gameState(GameState::PLAYING), currentPiece(nullptr),
         100.0f
     );
     
-    // Auto-start game
     spawnNewPiece();
     std::cout << "\n=== TETRIS 3D - GAME STARTED ===" << std::endl;
 }
@@ -34,12 +32,10 @@ GameField::GameField() : gameState(GameState::PLAYING), currentPiece(nullptr),
 GameField::~GameField() {
     clearField();
     
-    // Clean up walls
     for (Cube* wall : walls) {
         delete wall;
     }
     
-    // Clean up indicators
     for (Cube* cube : indicatorCubes) {
         delete cube;
     }
@@ -48,12 +44,10 @@ GameField::~GameField() {
 }
 
 void GameField::render() {
-    // Render walls
     for (Cube* wall : walls) {
         wall->render(view, projection);
     }
     
-    // Render field cubes
     for (int y = 0; y < FIELD_HEIGHT; y++) {
         for (int x = 0; x < FIELD_WIDTH; x++) {
             if (field[y][x] != nullptr) {
@@ -62,12 +56,9 @@ void GameField::render() {
         }
     }
     
-    // Render current piece (even when game over - this shows the final piece)
     if (currentPiece != nullptr) {
         currentPiece->render(view, projection);
     }
-    
-    // No visual indicators needed - just keep the game state
 }
 
 void GameField::clearField() {
@@ -100,7 +91,6 @@ void GameField::initializeWalls() {
 
 void GameField::startGame() {
     if (gameState != GameState::WAITING_TO_START) return;
-    
     restartGame();
 }
 
@@ -112,7 +102,6 @@ void GameField::restartGame() {
     linesCleared = 0;
     gameState = GameState::PLAYING;
     
-    // Clear indicators
     for (Cube* cube : indicatorCubes) {
         delete cube;
     }
@@ -128,15 +117,13 @@ void GameField::spawnNewPiece() {
     PieceType type = static_cast<PieceType>(pieceDist(rng));
     currentPiece = new Piece(type, 5.0f, FIELD_HEIGHT);
     
-    // Check if spawn position is valid
     if (!isValidPosition(currentPiece->getBlockPositions())) {
         gameState = GameState::GAME_OVER;
         std::cout << "\n=== GAME OVER ===" << std::endl;
         std::cout << "Final Score: " << score << std::endl;
         std::cout << "Lines Cleared: " << linesCleared << std::endl;
         std::cout << "Press any key to restart!" << std::endl;
-        // DON'T delete currentPiece here - keep it to show the final position
-        return; // Exit without deleting the piece
+        return;
     }
 }
 
@@ -145,12 +132,10 @@ bool GameField::isValidPosition(const std::vector<glm::vec2>& positions) {
         int x = static_cast<int>(pos.x);
         int y = static_cast<int>(pos.y);
         
-        // Check bounds
         if (x < 0 || x >= FIELD_WIDTH || y < 0) {
             return false;
         }
         
-        // Check collision with placed blocks
         if (y < FIELD_HEIGHT && field[y][x] != nullptr) {
             return false;
         }
@@ -186,7 +171,7 @@ void GameField::checkAndClearLines() {
             dropLinesAbove(y);
             linesCleared++;
             score += 100;
-            y++; // Check the same line again as blocks have dropped
+            y++;
             
             std::cout << "Line cleared! Score: " << score << " | Lines: " << linesCleared << std::endl;
         }
@@ -203,9 +188,12 @@ bool GameField::isLineFull(int line) {
 }
 
 void GameField::clearLine(int line) {
+    // Only delete cubes in the specified line
     for (int x = 0; x < FIELD_WIDTH; x++) {
-        delete field[line][x];
-        field[line][x] = nullptr;
+        if (field[line][x] != nullptr) {
+            delete field[line][x];
+            field[line][x] = nullptr;
+        }
     }
 }
 
@@ -215,13 +203,9 @@ void GameField::dropLinesAbove(int clearedLine) {
             field[y][x] = field[y + 1][x];
             field[y + 1][x] = nullptr;
             
-            // Update cube position if it exists
+            // Update cube position using setPosition instead of recreating
             if (field[y][x] != nullptr) {
-                // This would require modifying Cube class to update position
-                // For now, recreate the cube at new position
-                auto color = field[y][x]->getColor();
-                delete field[y][x];
-                field[y][x] = new Cube(static_cast<float>(x), static_cast<float>(y), 0.0f, color);
+                field[y][x]->setPosition(static_cast<float>(x), static_cast<float>(y), 0.0f);
             }
         }
     }
@@ -230,16 +214,14 @@ void GameField::dropLinesAbove(int clearedLine) {
 void GameField::update() {
     if (gameState != GameState::PLAYING || !currentPiece) return;
     
-    // Try to move piece down by checking if it can move
     auto newPositions = currentPiece->getBlockPositions();
     for (auto& pos : newPositions) {
         pos.y -= 1;
     }
     
     if (isValidPosition(newPositions)) {
-        currentPiece->move(0, -1);  // Move down
+        currentPiece->move(0, -1);
     } else {
-        // Piece can't move down, lock it
         lockCurrentPiece();
         spawnNewPiece();
     }
@@ -262,7 +244,6 @@ void GameField::moveCurrentPiece(int dx, int dy) {
 void GameField::dropCurrentPiece() {
     if (gameState != GameState::PLAYING || !currentPiece) return;
     
-    // Drop piece until it can't move down anymore
     bool canMoveDown = true;
     while (canMoveDown) {
         auto newPositions = currentPiece->getBlockPositions();
@@ -277,7 +258,6 @@ void GameField::dropCurrentPiece() {
         }
     }
     
-    // Lock the piece
     lockCurrentPiece();
     spawnNewPiece();
 }
