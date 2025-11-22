@@ -62,63 +62,12 @@ void GameField::render() {
         }
     }
     
-    // Render current piece
+    // Render current piece (even when game over - this shows the final piece)
     if (currentPiece != nullptr) {
         currentPiece->render(view, projection);
     }
     
-    // Render game state indicators
-    if (gameState == GameState::WAITING_TO_START) {
-        renderStartIndicator();
-    } else if (gameState == GameState::GAME_OVER) {
-        renderGameOverIndicator();
-    }
-}
-
-void GameField::renderStartIndicator() {
-    // Clear previous indicators
-    for (Cube* cube : indicatorCubes) {
-        delete cube;
-    }
-    indicatorCubes.clear();
-    
-    // Create green indicator cubes spelling "START"
-    glm::vec3 green(0.0f, 1.0f, 0.0f);
-    
-    // Simple pattern in the center of the field
-    for (int x = 2; x <= 7; x++) {
-        indicatorCubes.push_back(new Cube(static_cast<float>(x), 7.0f, 0.0f, green));
-    }
-    for (int x = 3; x <= 6; x++) {
-        indicatorCubes.push_back(new Cube(static_cast<float>(x), 8.0f, 0.0f, green));
-    }
-    
-    // Render indicators
-    for (Cube* cube : indicatorCubes) {
-        cube->render(view, projection);
-    }
-}
-
-void GameField::renderGameOverIndicator() {
-    // Clear previous indicators
-    for (Cube* cube : indicatorCubes) {
-        delete cube;
-    }
-    indicatorCubes.clear();
-    
-    // Create red indicator cubes
-    glm::vec3 red(1.0f, 0.0f, 0.0f);
-    
-    // Cross pattern
-    for (int i = 0; i < 5; i++) {
-        indicatorCubes.push_back(new Cube(static_cast<float>(2 + i), static_cast<float>(5 + i), 0.0f, red));
-        indicatorCubes.push_back(new Cube(static_cast<float>(6 - i), static_cast<float>(5 + i), 0.0f, red));
-    }
-    
-    // Render indicators
-    for (Cube* cube : indicatorCubes) {
-        cube->render(view, projection);
-    }
+    // No visual indicators needed - just keep the game state
 }
 
 void GameField::clearField() {
@@ -186,6 +135,8 @@ void GameField::spawnNewPiece() {
         std::cout << "Final Score: " << score << std::endl;
         std::cout << "Lines Cleared: " << linesCleared << std::endl;
         std::cout << "Press any key to restart!" << std::endl;
+        // DON'T delete currentPiece here - keep it to show the final position
+        return; // Exit without deleting the piece
     }
 }
 
