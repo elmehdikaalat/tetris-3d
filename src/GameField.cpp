@@ -10,7 +10,6 @@ GameField::GameField() : gameState(GameState::WAITING_TO_START), currentPiece(nu
         field[y].resize(FIELD_WIDTH, nullptr);
     }
     
-    uiOverlay = new UIOverlay();
     initializeWalls();
     
     // Setup camera and projection
@@ -26,6 +25,10 @@ GameField::GameField() : gameState(GameState::WAITING_TO_START), currentPiece(nu
         0.1f, 
         100.0f
     );
+    
+    // Print welcome message
+    std::cout << "\n=== TETRIS 3D - WAITING TO START ===" << std::endl;
+    std::cout << "Press SPACE to begin!" << std::endl;
 }
 
 GameField::~GameField() {
@@ -37,7 +40,6 @@ GameField::~GameField() {
     }
     
     delete currentPiece;
-    delete uiOverlay;
 }
 
 void GameField::clearField() {
@@ -74,6 +76,9 @@ void GameField::startGame() {
     resetGame();
     gameState = GameState::PLAYING;
     spawnNewPiece();
+    
+    std::cout << "\n=== GAME STARTED ===" << std::endl;
+    std::cout << "Score: " << score << " | Lines: " << linesCleared << std::endl;
 }
 
 void GameField::resetGame() {
@@ -83,6 +88,9 @@ void GameField::resetGame() {
     score = 0;
     linesCleared = 0;
     gameState = GameState::WAITING_TO_START;
+    
+    std::cout << "\n=== GAME RESET - WAITING TO START ===" << std::endl;
+    std::cout << "Press SPACE to begin!" << std::endl;
 }
 
 void GameField::spawnNewPiece() {
@@ -94,19 +102,27 @@ void GameField::spawnNewPiece() {
     // Check if spawn position is valid
     if (!isValidPosition(currentPiece->getBlockPositions())) {
         gameState = GameState::GAME_OVER;
-        std::cout << "Game Over! Score: " << score << " Lines: " << linesCleared << std::endl;
+        std::cout << "\n=== GAME OVER ===" << std::endl;
+        std::cout << "Final Score: " << score << std::endl;
+        std::cout << "Lines Cleared: " << linesCleared << std::endl;
+        std::cout << "Press SPACE to restart!" << std::endl;
+        
+        delete currentPiece;
+        currentPiece = nullptr;
     }
 }
 
 bool GameField::isValidPosition(const std::vector<glm::vec2>& positions) {
-    for (const auto& pos : positions) {
-        int x = static_cast<int>(round(pos.x));
-        int y = static_cast<int>(round(pos.y));
+    for (const glm::vec2& pos : positions) {
+        int x = static_cast<int>(pos.x);
+        int y = static_cast<int>(pos.y);
         
+        // Check bounds
         if (x < 0 || x >= FIELD_WIDTH || y < 0) {
             return false;
         }
         
+        // Check collision with placed pieces (only check if within field height)
         if (y < FIELD_HEIGHT && field[y][x] != nullptr) {
             return false;
         }
@@ -118,9 +134,8 @@ void GameField::moveCurrentPiece(int dx, int dy) {
     if (!currentPiece || gameState != GameState::PLAYING) return;
     
     currentPiece->move(dx, dy);
-    
     if (!isValidPosition(currentPiece->getBlockPositions())) {
-        currentPiece->move(-dx, -dy);
+        currentPiece->move(-dx, -dy); // Revert move
     }
 }
 
@@ -130,37 +145,38 @@ void GameField::dropCurrentPiece() {
     while (true) {
         currentPiece->move(0, -1);
         if (!isValidPosition(currentPiece->getBlockPositions())) {
-            currentPiece->move(0, 1);
+            currentPiece->move(0, 1); // Revert last move
             break;
         }
     }
-    
     lockCurrentPiece();
+}
+
+void GameField::update() {
+    if (!currentPiece || gameState != GameState::PLAYING) return;
+    
+    // Try to move piece down
+    currentPiece->move(0, -1);
+    if (!isValidPosition(currentPiece->getBlockPositions())) {
+        currentPiece->move(0, 1); // Revert move
+        lockCurrentPiece();
+    }
 }
 
 void GameField::lockCurrentPiece() {
     if (!currentPiece) return;
     
     std::vector<glm::vec2> positions = currentPiece->getBlockPositions();
-    
-    // Check if any part exceeds field height - GAME OVER
-    for (const auto& pos : positions) {
-        int y = static_cast<int>(round(pos.y));
-        if (y >= FIELD_HEIGHT) {
-            gameState = GameState::GAME_OVER;
-            delete currentPiece;
-            currentPiece = nullptr;
-            std::cout << "Game Over! Score: " << score << " Lines: " << linesCleared << std::endl;
-            return;
-        }
-    }
+    glm::vec3 color = currentPiece->getColor();
     
     // Place cubes in field
-    glm::vec3 pieceColor = currentPiece->getColor();
-    for (const auto& pos : positions) {
-        int x = static_cast<int>(round(pos.x));
-        int y = static_cast<int>(round(pos.y));
-        field[y][x] = new Cube(x, y, 0, pieceColor);
+    for (const glm::vec2& pos : positions) {
+        int x = static_cast<int>(pos.x);
+        int y = static_cast<int>(pos.y);
+        
+        if (x >= 0 && x < FIELD_WIDTH && y >= 0 && y < FIELD_HEIGHT) {
+            field[y][x] = new Cube(x, y, 0, color);
+        }
     }
     
     delete currentPiece;
@@ -170,33 +186,23 @@ void GameField::lockCurrentPiece() {
     spawnNewPiece();
 }
 
-void GameField::update() {
-    if (!currentPiece || gameState != GameState::PLAYING) return;
-    
-    currentPiece->move(0, -1);
-    
-    if (!isValidPosition(currentPiece->getBlockPositions())) {
-        currentPiece->move(0, 1);
-        lockCurrentPiece();
-    }
-}
-
 void GameField::checkAndClearLines() {
     int clearedThisTurn = 0;
     
-    for (int y = FIELD_HEIGHT - 1; y >= 0; y--) {
+    for (int y = 0; y < FIELD_HEIGHT; y++) {
         if (isLineFull(y)) {
             clearLine(y);
             dropLinesAbove(y);
             clearedThisTurn++;
-            y++; // Check this line again
+            y--; // Check same line again since lines dropped down
         }
     }
     
     if (clearedThisTurn > 0) {
         linesCleared += clearedThisTurn;
         score += clearedThisTurn * 100 * (clearedThisTurn > 1 ? 2 : 1); // Bonus for multiple lines
-        std::cout << "Lines cleared: " << clearedThisTurn << " Total: " << linesCleared << " Score: " << score << std::endl;
+        
+        std::cout << "Lines cleared: " << clearedThisTurn << " | Total: " << linesCleared << " | Score: " << score << std::endl;
     }
 }
 
@@ -228,23 +234,13 @@ void GameField::dropLinesAbove(int clearedLine) {
     }
 }
 
-void GameField::renderStartScreen() {
-    // Render walls
+void GameField::render() {
+    // Always render walls
     for (Cube* wall : walls) {
         wall->render(view, projection);
     }
     
-    // Render UI messages
-    uiOverlay->renderStartMessage(view, projection);
-    uiOverlay->renderControls(view, projection);
-}
-
-void GameField::renderGameOverScreen() {
-    // Render walls and placed pieces
-    for (Cube* wall : walls) {
-        wall->render(view, projection);
-    }
-    
+    // Render placed pieces
     for (int y = 0; y < FIELD_HEIGHT; y++) {
         for (int x = 0; x < FIELD_WIDTH; x++) {
             if (field[y][x] != nullptr) {
@@ -253,39 +249,8 @@ void GameField::renderGameOverScreen() {
         }
     }
     
-    // Render game over UI
-    uiOverlay->renderGameOverMessage(view, projection, score, linesCleared);
-}
-
-void GameField::render() {
-    switch (gameState) {
-        case GameState::WAITING_TO_START:
-            renderStartScreen();
-            break;
-            
-        case GameState::PLAYING:
-            // Render walls
-            for (Cube* wall : walls) {
-                wall->render(view, projection);
-            }
-            
-            // Render placed pieces
-            for (int y = 0; y < FIELD_HEIGHT; y++) {
-                for (int x = 0; x < FIELD_WIDTH; x++) {
-                    if (field[y][x] != nullptr) {
-                        field[y][x]->render(view, projection);
-                    }
-                }
-            }
-            
-            // Render current falling piece
-            if (currentPiece) {
-                currentPiece->render(view, projection);
-            }
-            break;
-            
-        case GameState::GAME_OVER:
-            renderGameOverScreen();
-            break;
+    // Render current falling piece (only when playing)
+    if (currentPiece && gameState == GameState::PLAYING) {
+        currentPiece->render(view, projection);
     }
 }

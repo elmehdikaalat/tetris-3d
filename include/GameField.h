@@ -3,7 +3,6 @@
 
 #include "Piece.h"
 #include "Cube.h"
-#include "UIOverlay.h"
 #include <vector>
 #include <glm/glm.hpp>
 #include <random>
@@ -41,8 +40,6 @@ private:
     bool isLineFull(int line);
     void clearLine(int line);
     void dropLinesAbove(int line);
-    void renderStartScreen();
-    void renderGameOverScreen();
     void clearField();
     
     // Game state
@@ -52,7 +49,6 @@ private:
     GameState gameState;
     int score;
     int linesCleared;
-    UIOverlay* uiOverlay;
     
     // Camera and projection
     glm::mat4 view;
