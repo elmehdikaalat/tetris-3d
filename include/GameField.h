@@ -26,7 +26,7 @@ public:
     void moveCurrentPiece(int dx, int dy);
     void dropCurrentPiece();
     void startGame();
-    void resetGame();
+    void restartGame();
     
     bool isGameOver() const { return gameState == GameState::GAME_OVER; }
     GameState getGameState() const { return gameState; }
@@ -41,6 +41,10 @@ private:
     void clearLine(int line);
     void dropLinesAbove(int line);
     void clearField();
+    
+    // Visual indicators
+    void renderStartIndicator();
+    void renderGameOverIndicator();
     
     // Game state
     std::vector<std::vector<Cube*>> field;
@@ -57,6 +61,9 @@ private:
     // Random generator
     std::mt19937 rng;
     std::uniform_int_distribution<int> pieceDist;
+    
+    // Indicator cubes
+    std::vector<Cube*> indicatorCubes;
 };
 
 #endif
