@@ -18,6 +18,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         if (gameField) {
             GameState state = gameField->getGameState();
             
+            // si c'est fini on relance
             if (state == GameState::GAME_OVER) {
                 gameField->restartGame();
                 return;
@@ -50,6 +51,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 int main() {
+    // init opengl
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -61,10 +63,12 @@ int main() {
         glfwTerminate();
         return -1;
     }
+    
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetKeyCallback(window, key_callback);
 
+    // glad pour charger les fonctions opengl
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
@@ -74,15 +78,18 @@ int main() {
     
     gameField = new GameField();
 
+    // pour faire tomber les pieces automatiquement
     auto lastTime = std::chrono::high_resolution_clock::now();
     float dropTimer = 0.0f;
-    const float DROP_INTERVAL = 1.0f; // Changed from 0.4f to 1.0f (1 second)
+    const float DROP_INTERVAL = 1.0f;
 
+    // game loop
     while (!glfwWindowShouldClose(window)) {
         auto currentTime = std::chrono::high_resolution_clock::now();
         float deltaTime = std::chrono::duration<float>(currentTime - lastTime).count();
         lastTime = currentTime;
 
+        // update du jeu si on joue
         if (gameField->getGameState() == GameState::PLAYING) {
             dropTimer += deltaTime;
             if (dropTimer >= DROP_INTERVAL) {
@@ -91,6 +98,7 @@ int main() {
             }
         }
 
+        // affichage
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

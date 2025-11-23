@@ -31,11 +31,9 @@ private:
     unsigned int shaderProgram;
     unsigned int edgeShaderProgram;
     
-    // Vertices for a unit cube with normals
     static const float vertices[];
     static const unsigned int indices[];
     
-    // Shader sources
     static const char* vertexShaderSource;
     static const char* fragmentShaderSource;
 };
