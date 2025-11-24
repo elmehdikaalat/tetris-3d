@@ -9,21 +9,13 @@ Un jeu de tetris en 3D fait en C++ avec OpenGL, GLFW et GLM.
 - Support OpenGL
 
 ## Libs incluses
-Les librairies necessaires sont deja dans le projet :
+Les librairies necessaires :
 - **GLFW** - pour gerer la fenetre et le contexte OpenGL
 - **GLM** - pour les maths OpenGL
 
 Tout est pret a build directement
 
 ## Comment build
-
-### Windows
-```bash
-mkdir build
-cd build
-cmake ..
-cmake --build .
-```
 
 ### Linux/Mac
 ```bash
@@ -45,7 +37,6 @@ make
 ```
 src/           # Fichiers source
 include/       # Headers
-libs/          # Libs externes
 build/         # Build output (pas inclus)
 CMakeLists.txt # Config pour build
 ```
