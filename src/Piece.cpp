@@ -96,8 +96,7 @@ glm::vec3 Piece::getRandomColor() {
     float g = dist(rng);
     float b = dist(rng);
     
-    // assure qu'au moins une composante soit claire
-    float maxComp = std::max({r, g, b});
+    float maxComp = std::max(std::max(r, g), b);
     if (maxComp < 0.7f) {
         if (r == maxComp) r = 0.8f;
         else if (g == maxComp) g = 0.8f;

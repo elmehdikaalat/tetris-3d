@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <ctime>
 
-GameField::GameField() : gameState(GameState::PLAYING), currentPiece(nullptr), 
+GameField::GameField() : currentPiece(nullptr), gameState(GameState::PLAYING),
                          score(0), linesCleared(0), rng(static_cast<unsigned int>(std::time(0))), pieceDist(0, 5) {
     // init le terrain vide
     field.resize(FIELD_HEIGHT);
